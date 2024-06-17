@@ -26,9 +26,12 @@ find_package(crocoddyl REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
 set(Python_ADDITIONAL_VERSIONS 3.6 3.7 3.8)
-find_package(Python3 REQUIRED Development Interpreter)
+# find_package(Python3 REQUIRED Development Interpreter)
+find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED)
 set(WHICH_PYTHON3 "python3${Python3_VERSION_MINOR}")
 find_package(Boost COMPONENTS ${WHICH_PYTHON3} filesystem unit_test_framework REQUIRED)
+
+
 
 SET(URDFDOM_LIB /usr/lib/x86_64-linux-gnu/liburdfdom_model.so)
 
