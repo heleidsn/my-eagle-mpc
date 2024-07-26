@@ -4,6 +4,15 @@ This is a work-in-progress library. As such, it only contains basic features. Fo
 
 By now it has only been tested with Ubuntu 20.04 and Python 3.8.
 
+Currently used software version:
+
+- Pinocchio: 2.6.5
+- Crocoddyl: 1.6.0
+- Eagle MPC: 2021-09-02
+- example_robot_data: 2021-06-18
+- eigenpy: 2.6.2
+- hpp-fcl: 1.7.5
+
 # Eagle MPC
 ## 1. Introduction
 This library contains tools to solve *optimal control problems* (OCPs) that deal with *unmanned aerial manipulators* (UAMs).
