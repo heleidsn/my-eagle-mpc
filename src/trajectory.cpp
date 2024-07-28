@@ -16,7 +16,7 @@ boost::shared_ptr<Trajectory> Trajectory::create() {
   return trajectory;
 }
 
-void Trajectory::autoSetup(const std::string& yaml_path) {
+void Trajectory::autoSetup(const std::string& yaml_path) {  //! 从yaml文件中读取参数，然后初始化robot和stage
   ParserYaml parser(yaml_path);
   params_server_ = boost::make_shared<ParamsServer>(parser.get_params());
 
@@ -24,11 +24,11 @@ void Trajectory::autoSetup(const std::string& yaml_path) {
   robot_model_path_ = params_server_->getParam<std::string>(prefix_robot + "urdf");
 
   pinocchio::Model model;
-  pinocchio::urdf::buildModel(robot_model_path_, pinocchio::JointModelFreeFlyer(), model);
+  pinocchio::urdf::buildModel(robot_model_path_, pinocchio::JointModelFreeFlyer(), model);  // 创建模型， 一个六自由度的悬浮基座
   robot_model_ = boost::make_shared<pinocchio::Model>(model);
 
-  platform_params_ = boost::make_shared<MultiCopterBaseParams>();
-  platform_params_->autoSetup("robot/platform/", params_server_, robot_model_);
+  platform_params_ = boost::make_shared<MultiCopterBaseParams>();  // 创建一个多旋翼飞行器的参数对象
+  platform_params_->autoSetup("robot/platform/", params_server_, robot_model_);  // 使用autoSetup对模型进行初始化
 
   robot_state_ = boost::make_shared<crocoddyl::StateMultibody>(robot_model_);
   actuation_ = boost::make_shared<crocoddyl::ActuationModelMultiCopterBase>(robot_state_, platform_params_->n_rotors_,
@@ -50,17 +50,17 @@ void Trajectory::autoSetup(const std::string& yaml_path) {
                              std::to_string(robot_state_->get_nx()) + " and it has " +
                              std::to_string(initial_state_.size()));
   }
-
+  //! ================读取stage的参数================   
   auto stages_params = params_server_->getParam<std::vector<std::map<std::string, std::string>>>("stages");
   std::size_t time = 0;
   bool stage_duration_0 = false;
-  for (auto stage_param : stages_params) {
+  for (auto stage_param : stages_params) {  //! 逐个stage进行初始化
     boost::shared_ptr<Stage> stage = Stage::create(shared_from_this());
     stage->autoSetup("stages/", stage_param, params_server_, time);
     if (!stage_duration_0 && stage->get_duration() == 0) {
       stage_duration_0 = true;
     } else if (stage_duration_0 && stage->get_duration() == 0) {
-      throw std::runtime_error(
+      throw std::runtime_error(  // 两个连续的stage不能有0的持续时间，应该合并成一个stage
           "Two consecutives stages cannot have duration 0. Please, unify them in a single stage.");
     } else {
       stage_duration_0 = false;
@@ -71,7 +71,7 @@ void Trajectory::autoSetup(const std::string& yaml_path) {
       has_contact_ = stage->get_contacts()->get_contacts().size() != 0;
     }
   }
-  duration_ = time;
+  duration_ = time;  // 所有stage的持续时间之和
 }
 
 boost::shared_ptr<crocoddyl::ShootingProblem> Trajectory::createProblem(const std::size_t& dt, const bool& squash,
@@ -81,18 +81,18 @@ boost::shared_ptr<crocoddyl::ShootingProblem> Trajectory::createProblem(const st
   boost::shared_ptr<crocoddyl::ActionModelAbstract> terminal_model;
 
   bool last_duration0 = false;
-  for (auto stage = stages_.begin(); stage != stages_.end(); ++stage) {
+  for (auto stage = stages_.begin(); stage != stages_.end(); ++stage) {  // 针对每一个stage，创建一个DifferentialActionModelAbstract
     boost::shared_ptr<crocoddyl::DifferentialActionModelAbstract> dam =
-        dam_factory_->create(has_contact_, squash, *stage);
+        dam_factory_->create(has_contact_, squash, *stage);  // 利用crocoddyl创建dam
 
     boost::shared_ptr<crocoddyl::ActionModelAbstract> iam = iam_factory_->create(integration_method, dt, dam);
 
     std::size_t n_knots;
     if ((*stage)->get_duration() / dt == 0 && std::next(stage) != stages_.end()) {
-      n_knots = 1;
+      n_knots = 1;  // 到达last stage 那么只有一个knot
       last_duration0 = true;
     } else {
-      n_knots = (*stage)->get_duration() / dt;
+      n_knots = (*stage)->get_duration() / dt;  // 否则就是duration/dt
       if (last_duration0) {
         n_knots -= 1;
       }
@@ -104,12 +104,12 @@ boost::shared_ptr<crocoddyl::ShootingProblem> Trajectory::createProblem(const st
     iam->set_u_lb(platform_params_->u_lb);
     iam->set_u_ub(platform_params_->u_ub);
 
-    std::vector<boost::shared_ptr<crocoddyl::ActionModelAbstract>> iams_stage(n_knots, iam);
+    std::vector<boost::shared_ptr<crocoddyl::ActionModelAbstract>> iams_stage(n_knots, iam);  // 初始化一个长度为n_knots的vector，每个元素都是iam
     terminal_model = iam;
-    running_models.insert(running_models.end(), iams_stage.begin(), iams_stage.end());
+    running_models.insert(running_models.end(), iams_stage.begin(), iams_stage.end()); // 将所有的iam都放到running_models中
   }
 
-  boost::shared_ptr<crocoddyl::ShootingProblem> problem =
+  boost::shared_ptr<crocoddyl::ShootingProblem> problem =  // 然后针对所有的running_models和terminal_model构造一个ShootingProblem
       boost::make_shared<crocoddyl::ShootingProblem>(initial_state_, running_models, terminal_model);
 
   return problem;

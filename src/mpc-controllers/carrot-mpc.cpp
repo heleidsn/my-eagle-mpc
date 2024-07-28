@@ -181,8 +181,8 @@ void CarrotMpc::createProblem() {
   for (std::size_t i = 0; i < params_.knots; ++i) {
     boost::shared_ptr<crocoddyl::CostModelSum> costs = createCosts();
 
-    boost::shared_ptr<crocoddyl::DifferentialActionModelAbstract> dam;
-    switch (dif_type) {
+    boost::shared_ptr<crocoddyl::DifferentialActionModelAbstract> dam;  // 微分模型
+    switch (dif_type) {  // 处理有接触和无接触的情况
       case DifferentialActionModelTypes::DifferentialActionModelFreeFwdDynamics:
         dam = boost::make_shared<crocoddyl::DifferentialActionModelFreeFwdDynamics>(robot_state_, actuation, costs);
         break;
@@ -191,7 +191,7 @@ void CarrotMpc::createProblem() {
         break;
     }
 
-    boost::shared_ptr<crocoddyl::ActionModelAbstract> iam;
+    boost::shared_ptr<crocoddyl::ActionModelAbstract> iam;  // 积分模型
     double dt_s = double(params_.dt) / 1000.;
     switch (params_.integrator_type) {
       case IntegratedActionModelTypes::IntegratedActionModelEuler:
@@ -205,8 +205,8 @@ void CarrotMpc::createProblem() {
     iam->set_u_lb(platform_params_->u_lb);
     iam->set_u_ub(platform_params_->u_ub);
 
-    dif_models_.push_back(dam);
-    int_models_.push_back(iam);
+    dif_models_.push_back(dam); // 微分模型
+    int_models_.push_back(iam); // 积分模型 基于微分模型、时间步长和控制器上下界
   }
 
   problem_ = boost::make_shared<crocoddyl::ShootingProblem>(
@@ -284,7 +284,7 @@ void CarrotMpc::updateProblem(const std::size_t& current_time) {
   for (std::size_t i = 0; i < dif_models_.size(); ++i) {
     update_vars_.node_time = current_time + i * params_.dt;
     // computeActiveStage(update_vars_.node_time, update_vars_.idx_last_stage);
-    computeActiveStage(update_vars_.node_time);
+    computeActiveStage(update_vars_.node_time);  //! 计算当前是哪个阶段
     // if (update_vars_.idx_stage < trajectory_->get_stages().size()) {
     //   update_vars_.name_stage = trajectory_->get_stages()[update_vars_.idx_stage]->get_name() + "/";
     // }
