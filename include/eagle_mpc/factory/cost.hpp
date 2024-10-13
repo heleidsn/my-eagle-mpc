@@ -35,47 +35,89 @@
 
 namespace eagle_mpc
 {
-enum class CostModelTypes {
-    CostModelState,
-    CostModelControl,
-    CostModelFramePlacement,
-    CostModelFrameTranslation,
-    CostModelFrameRotation,
-    CostModelFrameVelocity,
-    CostModelContactFrictionCone,
-    NbCostModelTypes
+// enum class CostModelTypes {
+//     CostModelState,
+//     CostModelControl,
+//     CostModelFramePlacement,
+//     CostModelFrameTranslation,
+//     CostModelFrameRotation,
+//     CostModelFrameVelocity,
+//     CostModelContactFrictionCone,
+//     NbCostModelTypes
+// };
+
+// struct ResidualModelTypes {
+//     enum Type {
+//         ResidualModelState,
+//         ResidualModelControl,
+//         ResidualModelCoMPosition,
+//         ResidualModelCentroidalMomentum,
+//         ResidualModelFramePlacement,
+//         ResidualModelFrameRotation,
+//         ResidualModelFrameTranslation,
+//         ResidualModelFrameVelocity,
+//         ResidualModelControlGrav,
+// #ifdef PINOCCHIO_WITH_HPP_FCL
+//         ResidualModelPairCollision,
+// #endif  // PINOCCHIO_WITH_HPP_FCL
+//         NbResidualModelTypes
+//     };
+//     static std::vector<Type> init_all()
+//     {
+//         std::vector<Type> v;
+//         for (int i = 0; i < NbResidualModelTypes; ++i) {
+//             v.push_back((Type)i);
+//         }
+//         return v;
+//     }
+//     static const std::vector<Type> all;
+// };
+
+enum class ResidualModelTypes {
+    ResidualModelState,
+    ResidualModelControl,
+    ResidualModelCoMPosition,
+    ResidualModelCentroidalMomentum,
+    ResidualModelFramePlacement,
+    ResidualModelFrameRotation,
+    ResidualModelFrameTranslation,
+    ResidualModelFrameVelocity,
+    ResidualModelControlGrav,
+    ResidualModelPairCollision,
+    ResidualModelContactFrictionCone,
+    NbResidualModelTypes
 };
 
-static std::map<std::string, CostModelTypes> CostModelTypes_init_map()
+static std::map<std::string, ResidualModelTypes> ResidualModelTypes_init_map()
 {
-    std::map<std::string, CostModelTypes> m;
+    std::map<std::string, ResidualModelTypes> m;
     m.clear();
-    m.insert({"CostModelState", CostModelTypes::CostModelState});
-    m.insert({"CostModelControl", CostModelTypes::CostModelControl});
-    m.insert({"CostModelFramePlacement", CostModelTypes::CostModelFramePlacement});
-    m.insert({"CostModelFrameTranslation", CostModelTypes::CostModelFrameTranslation});
-    m.insert({"CostModelFrameRotation", CostModelTypes::CostModelFrameRotation});
-    m.insert({"CostModelFrameVelocity", CostModelTypes::CostModelFrameVelocity});
-    m.insert({"CostModelContactFrictionCone", CostModelTypes::CostModelContactFrictionCone});
+    m.insert({"ResidualModelState", ResidualModelTypes::ResidualModelState});
+    m.insert({"ResidualModelControl", ResidualModelTypes::ResidualModelControl});
+    m.insert({"ResidualModelFramePlacement", ResidualModelTypes::ResidualModelFramePlacement});
+    m.insert({"ResidualModelFrameTranslation", ResidualModelTypes::ResidualModelFrameTranslation});
+    m.insert({"ResidualModelFrameRotation", ResidualModelTypes::ResidualModelFrameRotation});
+    m.insert({"ResidualModelFrameVelocity", ResidualModelTypes::ResidualModelFrameVelocity});
+    m.insert({"ResidualModelContactFrictionCone", ResidualModelTypes::ResidualModelContactFrictionCone});
     return m;
 }
 
-static const std::map<std::string, CostModelTypes> CostModelTypes_map = CostModelTypes_init_map();
+static const std::map<std::string, ResidualModelTypes> ResidualModelTypes_map = ResidualModelTypes_init_map();
 
 class Stage;
-class CostModelFactory
+class ResidualModelFactory
 {
     public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-    explicit CostModelFactory();
-    ~CostModelFactory();
+    explicit ResidualModelFactory();
+    ~ResidualModelFactory();
 
     boost::shared_ptr<crocoddyl::CostModelResidual> create(const std::string&                     path_to_cost,
                                                            const boost::shared_ptr<ParamsServer>& server,
                                                            const boost::shared_ptr<crocoddyl::StateMultibody>& state,
                                                            const std::size_t&                                  nu,
-                                                           CostModelTypes& cost_type) const;
+                                                           ResidualModelTypes& cost_type) const;
 
     boost::shared_ptr<ActivationModelFactory> activation_factory_;
 };

@@ -11,7 +11,7 @@
 // #include "pinocchio/algorithm/joint-configuration.hpp"
 
 #include "crocoddyl/core/costs/cost-sum.hpp"
-#include "crocoddyl/multibody/costs/state.hpp"
+#include "crocoddyl/multibody/residuals/state.hpp"
 
 #include "eagle_mpc/trajectory.hpp"
 #include "eagle_mpc/mpc-base.hpp"

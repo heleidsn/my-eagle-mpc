@@ -6,13 +6,13 @@ namespace eagle_mpc
 {
 Stage::Stage(const boost::shared_ptr<Trajectory>& trajectory) : trajectory_(trajectory)
 {
-    costs_           = boost::make_shared<crocoddyl::CostModelSum>(trajectory_->get_robot_state(),
-                                                         trajectory_->get_actuation()->get_nu());
-    contacts_        = boost::make_shared<crocoddyl::ContactModelMultiple>(trajectory_->get_robot_state(),
+    costs_            = boost::make_shared<crocoddyl::CostModelSum>(trajectory_->get_robot_state(),
                                                                     trajectory_->get_actuation()->get_nu());
-    cost_factory_    = boost::make_shared<CostModelFactory>();
-    contact_factory_ = boost::make_shared<ContactModelFactory>();
-    is_terminal_     = false;
+    contacts_         = boost::make_shared<crocoddyl::ContactModelMultiple>(trajectory_->get_robot_state(),
+                                                                            trajectory_->get_actuation()->get_nu());
+    residual_factory_ = boost::make_shared<ResidualModelFactory>();
+    contact_factory_  = boost::make_shared<ContactModelFactory>();
+    is_terminal_      = false;
 }
 
 Stage::~Stage() {}
@@ -59,10 +59,10 @@ void Stage::autoSetup(const std::string&                        path_to_stages,
             EMPC_DEBUG(e.what(), " Set to true.");
             active = true;
         }
-        CostModelTypes                                  cost_type;
-        boost::shared_ptr<crocoddyl::CostModelAbstract> cost =
-            cost_factory_->create(path_to_stage + "costs/" + cost_name + "/", server, trajectory_->get_robot_state(),
-                                  trajectory_->get_actuation()->get_nu(), cost_type);
+        ResidualModelTypes                              cost_type;
+        boost::shared_ptr<crocoddyl::CostModelAbstract> cost = residual_factory_->create(
+            path_to_stage + "costs/" + cost_name + "/", server, trajectory_->get_robot_state(),
+            trajectory_->get_actuation()->get_nu(), cost_type);
         costs_->addCost(cost_name, cost, weight, active);
         cost_types_.insert({cost_name, cost_type});
 
@@ -77,12 +77,12 @@ const boost::shared_ptr<Trajectory>&                      Stage::get_trajectory(
 const boost::shared_ptr<crocoddyl::CostModelSum>&         Stage::get_costs() const { return costs_; }
 const boost::shared_ptr<crocoddyl::ContactModelMultiple>& Stage::get_contacts() const { return contacts_; }
 
-const std::map<std::string, CostModelTypes>&    Stage::get_cost_types() const { return cost_types_; }
-const std::map<std::string, ContactModelTypes>& Stage::get_contact_types() const { return contact_types_; }
-const std::size_t&                              Stage::get_duration() const { return duration_; }
-const std::size_t&                              Stage::get_t_ini() const { return t_ini_; }
-const std::string&                              Stage::get_name() const { return name_; };
-const bool&                                     Stage::get_is_terminal() const { return is_terminal_; }
-const bool&                                     Stage::get_is_transition() const { return is_transition_; }
+const std::map<std::string, ResidualModelTypes>& Stage::get_cost_types() const { return cost_types_; }
+const std::map<std::string, ContactModelTypes>&  Stage::get_contact_types() const { return contact_types_; }
+const std::size_t&                               Stage::get_duration() const { return duration_; }
+const std::size_t&                               Stage::get_t_ini() const { return t_ini_; }
+const std::string&                               Stage::get_name() const { return name_; };
+const bool&                                      Stage::get_is_terminal() const { return is_terminal_; }
+const bool&                                      Stage::get_is_transition() const { return is_transition_; }
 
 }  // namespace eagle_mpc

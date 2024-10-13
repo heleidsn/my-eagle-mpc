@@ -10,14 +10,15 @@ from eagle_mpc.utils.plots import PlotControlsGroup, showPlots
 
 # Trajectory
 dt = 20  # ms
-useSquash = True
+useSquash = False  # True
 robotName = 'hexacopter370_flying_arm_3'
 # trajectoryName = 'eagle_catch_nc'
 trajectoryName = 'displacement'
 mpcName = 'carrot'
 
 trajectory = eagle_mpc.Trajectory()
-trajectory.autoSetup(EAGLE_MPC_YAML_DIR + "/" + robotName + "/trajectories/" + trajectoryName + ".yaml")
+trajectory.autoSetup(EAGLE_MPC_YAML_DIR + "/" + robotName +
+                     "/trajectories/" + trajectoryName + ".yaml")
 problem = trajectory.createProblem(dt, useSquash, "IntegratedActionModelEuler")
 
 if useSquash:
@@ -37,11 +38,13 @@ else:
     mpcController = eagle_mpc.CarrotMpc(trajectory, solver.xs, dt, mpcPath)
 
 mpcController.updateProblem(0)
-mpcController.solver.solve(solver.xs[:mpcController.problem.T + 1], solver.us[:mpcController.problem.T])
+mpcController.solver.solve(
+    solver.xs[:mpcController.problem.T + 1], solver.us[:mpcController.problem.T])
 mpcController.solver.convergence_init = 1e-3
 
 dtSimulator = 2
-simulator = AerialSimulator(mpcController.robot_model, mpcController.platform_params, dtSimulator, solver.xs[0])
+simulator = AerialSimulator(mpcController.robot_model,
+                            mpcController.platform_params, dtSimulator, solver.xs[0])
 t = 0
 updateTime = []
 solveTime = []
@@ -53,7 +56,8 @@ for i in range(0, int(problem.T * dt * 1.2)):
     end = time.time()
     updateTime.append(end - start)
     start = time.time()
-    mpcController.solver.solve(mpcController.solver.xs, mpcController.solver.us, mpcController.iters)
+    mpcController.solver.solve(
+        mpcController.solver.xs, mpcController.solver.us, mpcController.iters)
     end = time.time()
     solveTime.append(end - start)
     control = np.copy(mpcController.solver.us_squash[0])

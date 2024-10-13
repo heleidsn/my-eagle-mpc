@@ -6,20 +6,19 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "eagle_mpc/factory/cost.hpp"
-
 #include "eagle_mpc/utils/log.hpp"
 
 namespace eagle_mpc
 {
-CostModelFactory::CostModelFactory() { activation_factory_ = boost::make_shared<ActivationModelFactory>(); }
-CostModelFactory::~CostModelFactory() {}
+ResidualModelFactory::ResidualModelFactory() { activation_factory_ = boost::make_shared<ActivationModelFactory>(); }
+ResidualModelFactory::~ResidualModelFactory() {}
 
-boost::shared_ptr<crocoddyl::CostModelResidual> CostModelFactory::create(
+boost::shared_ptr<crocoddyl::CostModelResidual> ResidualModelFactory::create(
     const std::string&                                  path_to_cost,
     const boost::shared_ptr<ParamsServer>&              server,
     const boost::shared_ptr<crocoddyl::StateMultibody>& state,
     const std::size_t&                                  nu,
-    CostModelTypes&                                     cost_type) const
+    ResidualModelTypes&                                 cost_type) const
 {
     boost::shared_ptr<crocoddyl::CostModelResidual>       cost;
     boost::shared_ptr<crocoddyl::ResidualModelAbstract>   residual;
@@ -28,14 +27,14 @@ boost::shared_ptr<crocoddyl::CostModelResidual> CostModelFactory::create(
     Eigen::VectorXd reference;
 
     try {
-        cost_type = CostModelTypes_map.at(server->getParam<std::string>(path_to_cost + "type"));
+        cost_type = ResidualModelTypes_map.at(server->getParam<std::string>(path_to_cost + "type"));
     } catch (const std::exception& e) {
         throw std::runtime_error("Cost " + server->getParam<std::string>(path_to_cost + "type") +
                                  " not found. Please make sure the specified cost exists.");
     }
 
     switch (cost_type) {
-        case CostModelTypes::CostModelState: {
+        case ResidualModelTypes::ResidualModelState: {
             activation = activation_factory_->create(path_to_cost, server, state->get_ndx());
 
             try {
@@ -54,7 +53,7 @@ boost::shared_ptr<crocoddyl::CostModelResidual> CostModelFactory::create(
             residual = boost::make_shared<crocoddyl::ResidualModelState>(state, reference, nu);
             cost     = boost::make_shared<crocoddyl::CostModelResidual>(state, activation, residual);
         } break;
-        case CostModelTypes::CostModelControl: {
+        case ResidualModelTypes::ResidualModelControl: {
             activation = activation_factory_->create(path_to_cost, server, nu);
 
             try {
@@ -72,7 +71,7 @@ boost::shared_ptr<crocoddyl::CostModelResidual> CostModelFactory::create(
             residual = boost::make_shared<crocoddyl::ResidualModelControl>(state, reference);
             cost     = boost::make_shared<crocoddyl::CostModelResidual>(state, activation, residual);
         } break;
-        case CostModelTypes::CostModelFramePlacement: {
+        case ResidualModelTypes::ResidualModelFramePlacement: {
             activation = activation_factory_->create(path_to_cost, server, 6);
 
             Eigen::Vector3d position =
@@ -94,7 +93,7 @@ boost::shared_ptr<crocoddyl::CostModelResidual> CostModelFactory::create(
             residual = boost::make_shared<crocoddyl::ResidualModelFramePlacement>(state, link_id, m_ref, nu);
             cost     = boost::make_shared<crocoddyl::CostModelResidual>(state, activation, residual);
         } break;
-        case CostModelTypes::CostModelFrameRotation: {
+        case ResidualModelTypes::ResidualModelFrameRotation: {
             activation = activation_factory_->create(path_to_cost, server, 3);
 
             Eigen::Vector4d orientation =
@@ -113,7 +112,7 @@ boost::shared_ptr<crocoddyl::CostModelResidual> CostModelFactory::create(
                 boost::make_shared<crocoddyl::ResidualModelFrameRotation>(state, link_id, quat.toRotationMatrix(), nu);
             cost = boost::make_shared<crocoddyl::CostModelResidual>(state, activation, residual);
         } break;
-        case CostModelTypes::CostModelFrameVelocity: {
+        case ResidualModelTypes::ResidualModelFrameVelocity: {
             activation = activation_factory_->create(path_to_cost, server, 6);
 
             Eigen::Vector3d linear =
@@ -132,7 +131,7 @@ boost::shared_ptr<crocoddyl::CostModelResidual> CostModelFactory::create(
                                                                                  pinocchio::ReferenceFrame::LOCAL, nu);
             cost     = boost::make_shared<crocoddyl::CostModelResidual>(state, activation, residual);
         } break;
-        case CostModelTypes::CostModelFrameTranslation: {
+        case ResidualModelTypes::ResidualModelFrameTranslation: {
             activation = activation_factory_->create(path_to_cost, server, 3);
 
             Eigen::Vector3d position =
@@ -146,26 +145,27 @@ boost::shared_ptr<crocoddyl::CostModelResidual> CostModelFactory::create(
             residual = boost::make_shared<crocoddyl::ResidualModelFrameTranslation>(state, link_id, position, nu);
             cost     = boost::make_shared<crocoddyl::CostModelResidual>(state, activation, residual);
         } break;
-        case CostModelTypes::CostModelContactFrictionCone: {
-            Eigen::Vector3d n_surf =
-                converter<Eigen::VectorXd>::convert(server->getParam<std::string>(path_to_cost + "n_surf"));
-            double mu = server->getParam<double>(path_to_cost + "mu");
+            // case ResidualModelTypes::CostModelContactFrictionCone: {
+            //     Eigen::Vector3d n_surf =
+            //         converter<Eigen::VectorXd>::convert(server->getParam<std::string>(path_to_cost + "n_surf"));
+            //     double mu = server->getParam<double>(path_to_cost + "mu");
 
-            crocoddyl::FrictionCone friction_cone(n_surf, mu, 4, false);
-            std::string             link_name = server->getParam<std::string>(path_to_cost + "link_name");
-            std::size_t             link_id   = state->get_pinocchio()->getFrameId(link_name);
-            if (link_id == state->get_pinocchio()->frames.size()) {
-                throw std::runtime_error("Link " + link_name + "does no exists");
-            }
+            //     crocoddyl::FrictionCone friction_cone(n_surf, mu, 4, false);
+            //     std::string             link_name = server->getParam<std::string>(path_to_cost + "link_name");
+            //     std::size_t             link_id   = state->get_pinocchio()->getFrameId(link_name);
+            //     if (link_id == state->get_pinocchio()->frames.size()) {
+            //         throw std::runtime_error("Link " + link_name + "does no exists");
+            //     }
 
-            // In a constrained solver this might not be useful
-            crocoddyl::ActivationBounds bounds(friction_cone.get_lb(), friction_cone.get_ub());
-            activation = boost::make_shared<crocoddyl::ActivationModelQuadraticBarrier>(bounds);
+            //     // In a constrained solver this might not be useful
+            //     crocoddyl::ActivationBounds bounds(friction_cone.get_lb(), friction_cone.get_ub());
+            //     activation = boost::make_shared<crocoddyl::ActivationModelQuadraticBarrier>(bounds);
 
-            residual =
-                boost::make_shared<crocoddyl::ResidualModelContactFrictionCone>(state, link_id, friction_cone, nu);
-            cost = boost::make_shared<crocoddyl::CostModelResidual>(state, activation, residual);
-        } break;
+            //     residual =
+            //         boost::make_shared<crocoddyl::ResidualModelContactFrictionCone>(state, link_id, friction_cone,
+            //         nu);
+            //     cost = boost::make_shared<crocoddyl::CostModelResidual>(state, activation, residual);
+            // } break;
     }
     return cost;
 }

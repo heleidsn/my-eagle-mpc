@@ -23,21 +23,22 @@ namespace bp = boost::python;
 
 void exposeStage()
 {
-    bp::enum_<CostModelTypes>("CostModelTypes")
-        .value("CostModelState", CostModelTypes::CostModelState)
-        .value("CostModelControl", CostModelTypes::CostModelControl)
-        .value("CostModelFramePlacement", CostModelTypes::CostModelFramePlacement)
-        .value("CostModelFrameTranslation", CostModelTypes::CostModelFrameTranslation)
-        .value("CostModelFrameVelocity", CostModelTypes::CostModelFrameVelocity)
-        .value("CostModelContactFrictionCone", CostModelTypes::CostModelContactFrictionCone);
+    bp::enum_<ResidualModelTypes>("ResidualModelTypes")
+        .value("ResidualModelState", ResidualModelTypes::ResidualModelState)
+        .value("ResidualModelControl", ResidualModelTypes::ResidualModelControl)
+        .value("ResidualModelFramePlacement", ResidualModelTypes::ResidualModelFramePlacement)
+        .value("ResidualModelFrameTranslation", ResidualModelTypes::ResidualModelFrameTranslation)
+        .value("ResidualModelFrameVelocity", ResidualModelTypes::ResidualModelFrameVelocity)
+        .value("ResidualModelContactFrictionCone", ResidualModelTypes::ResidualModelContactFrictionCone);
 
     bp::enum_<ContactModelTypes>("ContactModelTypes")
         .value("ContactModel2D", ContactModelTypes::ContactModel2D)
         .value("ContactModel3D", ContactModelTypes::ContactModel3D)
         .value("ContactModel6D", ContactModelTypes::ContactModel6D);
 
-    StdMapPythonVisitor<std::string, CostModelTypes, std::less<std::string>,
-                        std::allocator<std::pair<const std::string, CostModelTypes>>, true>::expose("StdMap_CostType");
+    StdMapPythonVisitor<std::string, ResidualModelTypes, std::less<std::string>,
+                        std::allocator<std::pair<const std::string, ResidualModelTypes>>,
+                        true>::expose("StdMap_CostType");
     StdMapPythonVisitor<std::string, ContactModelTypes, std::less<std::string>,
                         std::allocator<std::pair<const std::string, ContactModelTypes>>,
                         true>::expose("StdMap_ContactType");

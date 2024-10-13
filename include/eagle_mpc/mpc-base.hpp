@@ -48,6 +48,10 @@ static const std::map<std::string, SolverTypes> SolverTypes_map = SolverTypes_in
 
 enum class MpcTypes { Carrot, Rail, Weighted };
 
+// struct MpcTypes {
+//     enum Type { Carrot, Rail, Weighted };
+// };
+
 static std::map<std::string, MpcTypes> MpcTypes_init_map()
 {
     std::map<std::string, MpcTypes> m;
@@ -101,8 +105,8 @@ class MpcAbstract
     std::vector<boost::shared_ptr<crocoddyl::CallbackAbstract>> solver_callbacks_;
     boost::shared_ptr<crocoddyl::SolverDDP>                     solver_;
 
-    boost::shared_ptr<CostModelFactory> cost_factory_;
-    boost::shared_ptr<ParamsServer>     params_server_;
+    boost::shared_ptr<ResidualModelFactory> residual_factory_;
+    boost::shared_ptr<ParamsServer>         params_server_;
 
     struct MpcParams {
         IntegratedActionModelTypes integrator_type;

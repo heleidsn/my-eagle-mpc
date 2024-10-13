@@ -28,9 +28,12 @@
 namespace eagle_mpc
 {
 class Trajectory;
-class CostModelFactory;
+class ResidualModelFactory;
 class ContactModelFactory;
-enum class CostModelTypes;
+enum class ResidualModelTypes;
+// struct ResidualModelTypes {
+//     enum Type {};
+// };
 enum class ContactModelTypes;
 
 class Stage : public boost::enable_shared_from_this<Stage>
@@ -51,8 +54,8 @@ class Stage : public boost::enable_shared_from_this<Stage>
     const boost::shared_ptr<crocoddyl::CostModelSum>&         get_costs() const;
     const boost::shared_ptr<crocoddyl::ContactModelMultiple>& get_contacts() const;
 
-    const std::map<std::string, CostModelTypes>&    get_cost_types() const;
-    const std::map<std::string, ContactModelTypes>& get_contact_types() const;
+    const std::map<std::string, ResidualModelTypes>& get_cost_types() const;
+    const std::map<std::string, ContactModelTypes>&  get_contact_types() const;
 
     const std::size_t& get_t_ini() const;
 
@@ -68,11 +71,11 @@ class Stage : public boost::enable_shared_from_this<Stage>
     boost::shared_ptr<crocoddyl::ContactModelMultiple> contacts_;
     boost::shared_ptr<Trajectory>                      trajectory_;
 
-    std::map<std::string, CostModelTypes>    cost_types_;
-    std::map<std::string, ContactModelTypes> contact_types_;
+    std::map<std::string, ResidualModelTypes> cost_types_;
+    std::map<std::string, ContactModelTypes>  contact_types_;
 
-    boost::shared_ptr<CostModelFactory>    cost_factory_;
-    boost::shared_ptr<ContactModelFactory> contact_factory_;
+    boost::shared_ptr<ResidualModelFactory> residual_factory_;
+    boost::shared_ptr<ContactModelFactory>  contact_factory_;
 
     std::string name_;
     std::size_t duration_;

@@ -33,7 +33,7 @@ static std::map<std::string, IntegratedActionModelTypes> IntegratedActionModelTy
     std::map<std::string, IntegratedActionModelTypes> m;
     m.clear();
     m.insert({"IntegratedActionModelEuler", IntegratedActionModelTypes::IntegratedActionModelEuler});
-    m.insert({"IntegratedActionModelRK4", IntegratedActionModelTypes::IntegratedActionModelRK4});
+    m.insert({"IntegratedActionModelRK", IntegratedActionModelTypes::IntegratedActionModelRK4});
     return m;
 }
 

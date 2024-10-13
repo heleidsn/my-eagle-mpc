@@ -13,7 +13,7 @@ MpcAbstract::MpcAbstract(const std::string& yaml_path)
     int_models_.reserve(params_.knots);
     dif_models_.reserve(params_.knots);
 
-    cost_factory_ = boost::make_shared<CostModelFactory>();
+    residual_factory_ = boost::make_shared<ResidualModelFactory>();
 }
 
 void MpcAbstract::initializeRobotObjects()
@@ -31,7 +31,7 @@ void MpcAbstract::initializeRobotObjects()
     robot_state_ = boost::make_shared<crocoddyl::StateMultibody>(robot_model_);
     actuation_ = boost::make_shared<crocoddyl::ActuationModelMultiCopterBase>(robot_state_, platform_params_->tau_f_);
     squash_    = boost::make_shared<crocoddyl::SquashingModelSmoothSat>(platform_params_->u_lb, platform_params_->u_ub,
-                                                                     actuation_->get_nu());
+                                                                        actuation_->get_nu());
     actuation_squash_ =
         boost::make_shared<crocoddyl::ActuationSquashingModel>(actuation_, squash_, actuation_->get_nu());
 }

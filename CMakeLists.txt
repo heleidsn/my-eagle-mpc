@@ -20,7 +20,7 @@ set(SHARE_DESTINATION "share/eagle_mpc")
 enable_testing()
 
 option(WITH_BINDINGS "Compile bindings" ON)
-option(WITH_EXAMPLES "Compile examples" OFF)
+option(WITH_EXAMPLES "Compile examples" ON)
 option(WITH_BENCHMARK "Compile benchmarks" OFF)
 
 find_package(Eigen3 3.3 REQUIRED)
@@ -30,9 +30,30 @@ find_package(crocoddyl REQUIRED)
 find_package(yaml-cpp REQUIRED)
 find_package(example-robot-data QUIET)
 
+
+# # Make use of python.cmake
+# include(cmake/python.cmake)
+
+# Specifically include python dirs
+set(PYTHON_INCLUDE_DIRS /usr/local/python/3.8.20/lib/python3.8/site-packages/numpy/core/include/)
+include_directories(${PYTHON_INCLUDE_DIRS})
+
+
 set(Python_ADDITIONAL_VERSIONS 3.6 3.7 3.8)
-find_package(Python3 REQUIRED Development Interpreter)
+
+# Find Python3 interpreter, NumPy package, and development files
+find_package(Python3 REQUIRED Development Interpreter) 
+# find_package(Python3 REQUIRED Development Interpreter NumPy)
+
 set(WHICH_PYTHON3 "python3${Python3_VERSION_MINOR}" CACHE STRING "Python3 version")
+
+# # Check if NumPy was found
+# if (Python3_NumPy_FOUND)
+#     message(STATUS "NumPy include dirs: ${Python3_NumPy_INCLUDE_DIRS}")
+#     include_directories(${Python3_NumPy_INCLUDE_DIRS})  # Add NumPy include directories
+# else()
+#     message(FATAL_ERROR "NumPy not found. Please ensure that it is installed.")
+# endif()
 
 find_package(
   Boost
@@ -43,8 +64,11 @@ find_package(
 set(EAGLE_MPC_YAML_DIR "${eagle_mpc_SOURCE_DIR}/yaml")
 
 if(example-robot-data_FOUND)
+  # [Boks] set EXAMPLE_ROBOT_DATA_MODEL_DIR
+  add_compile_definitions(EXAMPLE_ROBOT_DATA_MODEL_DIR=\"/usr/local/share/example-robot-data/robots\")
   add_compile_definitions(EAGLE_MPC_USE_EXAMPLE_ROBOT_DATA)
 else()
+  message(STATUS "EXAMPLE ROBOT DATA NOT FOUND")
   # if you don't want to use example-robot-data, place your path to the urdf
   # base folder inside the ""
   set(EAGLE_MPC_ROBOT_DATA_DIR "")
