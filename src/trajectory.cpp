@@ -1,5 +1,8 @@
 #include "eagle_mpc/trajectory.hpp"
 
+#include <iostream>
+using namespace std;
+
 #include "eagle_mpc/utils/log.hpp"
 namespace eagle_mpc
 {
@@ -18,13 +21,26 @@ boost::shared_ptr<Trajectory> Trajectory::create()
     return trajectory;
 }
 
+// [Boks] utility function
+void printParams(const std::map<std::string, std::string>& params)
+{
+    cout << "[Boks] printing params from parser.get_params(): " << std::endl;
+    for (const auto& pair : params) {
+        std::cout << "[Boks] " << pair.first << " = " << pair.second << std::endl;
+    }
+}
+
 void Trajectory::autoSetup(const std::string& yaml_path)
 {
     ParserYaml parser(yaml_path);
     params_server_ = boost::make_shared<ParamsServer>(parser.get_params());
 
+    printParams(parser.get_params());
+
     std::string prefix_robot = "robot/";
     robot_model_path_        = getUrdfPath(params_server_->getParam<std::string>(prefix_robot + "urdf"));
+
+    cout << "[Boks] robot_model_path_: " << robot_model_path_ << std::endl;
 
     pinocchio::Model model;
     pinocchio::urdf::buildModel(robot_model_path_, pinocchio::JointModelFreeFlyer(), model);
@@ -41,13 +57,15 @@ void Trajectory::autoSetup(const std::string& yaml_path)
         problem_params_.use_squash = false;
         problem_params_.dt         = 0;
         problem_params_.integrator = "";
+        cout << "[Boks] trajectory.cpp get params exception " << e.what() << "\n";
+
         EMPC_DEBUG("Problem params not found. If not in the Yaml file, specify when call createProblem()");
     }
 
     robot_state_ = boost::make_shared<crocoddyl::StateMultibody>(robot_model_);
     actuation_ = boost::make_shared<crocoddyl::ActuationModelMultiCopterBase>(robot_state_, platform_params_->tau_f_);
     squash_    = boost::make_shared<crocoddyl::SquashingModelSmoothSat>(platform_params_->u_lb, platform_params_->u_ub,
-                                                                     actuation_->get_nu());
+                                                                        actuation_->get_nu());
     actuation_squash_ =
         boost::make_shared<crocoddyl::ActuationSquashingModel>(actuation_, squash_, actuation_->get_nu());
 

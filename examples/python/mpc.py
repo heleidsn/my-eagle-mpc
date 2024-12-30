@@ -2,6 +2,9 @@ import numpy as np
 import time
 import copy
 import crocoddyl
+import sys
+import example_robot_data
+
 
 import eagle_mpc
 from eagle_mpc.utils.path import EAGLE_MPC_YAML_DIR
@@ -9,12 +12,15 @@ from eagle_mpc.utils.simulator import AerialSimulator
 from eagle_mpc.utils.plots import PlotControlsGroup, showPlots
 
 # Trajectory
-dt = 20  # ms
-useSquash = False  # True
+dt = 10  # ms
+useSquash = True  # False
 robotName = 'hexacopter370_flying_arm_3'
-# trajectoryName = 'eagle_catch_nc'
-trajectoryName = 'displacement'
+trajectoryName = 'eagle_catch_nc'
+# trajectoryName = 'displacement'
 mpcName = 'carrot'
+
+WITHDISPLAY = 'display' in sys.argv
+
 
 trajectory = eagle_mpc.Trajectory()
 trajectory.autoSetup(EAGLE_MPC_YAML_DIR + "/" + robotName +
@@ -65,8 +71,8 @@ for i in range(0, int(problem.T * dt * 1.2)):
     t += dtSimulator
 
 time = np.array([i * dt / 1000.0 for i in range(len(solver.us))])
-us_plot_tg = np.vstack(solver.us_squash).T
-PlotControlsGroup(us_plot_tg, time, 6)
+# us_plot_tg = np.vstack(solver.us_squash).T
+# PlotControlsGroup(us_plot_tg, time, 6)
 
 time_mpc = np.array([i * dt / 1000.0 for i in range(len(simulator.controls))])
 us_plot_mpc = np.vstack(simulator.controls).T
@@ -76,3 +82,45 @@ PlotControlsGroup(us_plot_mpc, time_mpc, 6)
 # print(simulator.states[-1])
 print("Average update time: ", sum(updateTime) / len(updateTime))
 print("Average solving time: ", sum(solveTime) / len(solveTime))
+
+if WITHDISPLAY:
+    robot = example_robot_data.load(trajectory.robot_model.name)
+
+    display = crocoddyl.MeshcatDisplay(robot)
+    display.rate = -1
+    display.freq = 1
+
+    # # Define a 90-degree rotation matrix around the Y-axis
+    # rotation_90_y = np.array([
+    #     [0, 0, 1, 0],  # X-axis becomes Z-axis
+    #     [0, 1, 0, 0],  # Y-axis remains Y-axis
+    #     [-1, 0, 0, 0],  # Z-axis becomes -X-axis
+    #     [0, 0, 0, 1]
+    # ])
+
+    # # Define the translation matrix (position of the camera)
+    # translation = np.array([
+    #     [1, 0, 0, 10],  # X-axis translation
+    #     [0, 1, 0, 100],  # Y-axis translation
+    #     [0, 0, 1, 10],   # Z-axis translation (zoom level)
+    #     [0, 0, 0, 1]
+    # ])
+
+    # # Combine rotation and translation into one transform matrix
+    # camera_position = translation @ rotation_90_y
+
+    # # Apply the transformation to set the initial camera view
+    # display.viewer["/Cameras/default"].set_transform(camera_position)
+
+    # Define the camera position, target, and up vector
+    camera_position = np.array([-2, -1, 3])
+    target_position = np.array([0, 0, 0])
+    up_vector = np.array([0, 0, 1])
+
+    # Apply the camera view using look_at
+    display.viewer["/Cameras/default"].look_at(
+        camera_position, target_position, up_vector)
+
+    while True:
+        display.displayFromSolver(solver)
+        time.sleep(1.0)

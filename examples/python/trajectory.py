@@ -3,13 +3,15 @@ import time
 
 import crocoddyl
 import example_robot_data
+import numpy as np
+
 
 import eagle_mpc
 from eagle_mpc.utils.path import EAGLE_MPC_YAML_DIR
 
 WITHDISPLAY = 'display' in sys.argv
 
-dt = 20  # ms
+dt = 10  # ms
 useSquash = True
 # useSquash = False
 
@@ -39,18 +41,21 @@ solver.solve([], [], maxiter=100)
 if WITHDISPLAY:
     robot = example_robot_data.load(trajectory.robot_model.name)
 
+    rate = -1
+    freq = 1
+    cameraTF = [-0.03, 4.4, 2.3, 0, 0.7071, 0, 0.7071]
+
     try:
         import gepetto
 
         gepetto.corbaserver.Client()
-        cameraTF = [-0.03, 4.4, 2.3, -0.02, 0.56, 0.83, -0.03]
 
-        display = crocoddyl.GepettoDisplay(robot, 4, 4, cameraTF, floor=False)
+        display = crocoddyl.GepettoDisplay(
+            robot, rate, freq, cameraTF, floor=False)
     except Exception as e:
-        display = crocoddyl.MeshcatDisplay(robot)
+        display = crocoddyl.MeshcatDisplay(robot, rate, freq, cameraTF)
         print("Failed to load gepetto: {}".format(e))
-    display.rate = -1
-    display.freq = 1
+
     while True:
         display.displayFromSolver(solver)
-        time.sleep(1.0)
+        # time.sleep(10.0)
